@@ -30,12 +30,4 @@ Infrastructure
 
 ## 시스템 구조
 
-Frontend (Demo Page)
-↓
-Spring Boot Backend
-↓
-FastAPI AI Service
-↓
-PostgreSQL + pgvector
-↓
-LLM
+Frontend (Demo Page) -> Spring Boot Backend -> FastAPI AI Service -> PostgreSQL + pgvector -> LLM
