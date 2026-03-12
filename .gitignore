@@ -1,0 +1,14 @@
+/.gradle
+.gradle/
+/build
+/target
+/.idea
+/.vscode
+*.iml
+*.log
+.DS_Store
+*.class
+/ai-service/.venv
+/ai-service/__pycache__
+/env
+/secrets

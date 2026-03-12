@@ -1,0 +1,38 @@
+version: '3.9'
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: company-research-postgres
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-company_research}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./infra/postgres/extensions.sql:/docker-entrypoint-initdb.d/02-extensions.sql
+
+  backend:
+    build:
+      context: ./backend
+    container_name: company-research-backend
+    depends_on:
+      - postgres
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    env_file:
+      - ./infra/env/backend.env.example
+
+  ai-service:
+    build:
+      context: ./ai-service
+    container_name: company-research-ai-service
+    ports:
+      - "${AI_SERVICE_PORT:-8000}:8000"
+    env_file:
+      - ./infra/env/ai-service.env.example
+
+volumes:
+  pgdata:
