@@ -154,10 +154,6 @@ company-research-ai/
 │   ├── postgres/
 │   │   ├── init.sql
 │   │   └── extensions.sql
-│   └── env/
-│       ├── backend.env.example
-│       ├── ai-service.env.example
-│       └── postgres.env.example
 │
 ├── scripts/                          # 실행/초기화 스크립트
 │   ├── run-local.sh
@@ -183,6 +179,37 @@ company-research-ai/
 - AI 질문 응답
 - 리뷰 작성
 - 리뷰 기반 분석
+
+## 환경 변수 운영 방식
+
+- 단일 `.env` 중심으로 운영합니다.
+- `.env.example`을 기준으로 실제 값을 `.env`에 입력해 사용하세요.
+- 운영 환경에서도 서비스별 파일 분기는 없고, 같은 `.env` 기반으로 주입됩니다.
+
+## 의존성
+
+### Backend (Spring Boot)
+
+`backend/build.gradle` 기준:
+
+- `org.springframework.boot:spring-boot-starter-web`
+- `org.springframework.boot:spring-boot-starter-data-jpa`
+- `org.postgresql:postgresql` (runtimeOnly)
+- `org.springframework.boot:spring-boot-starter-test`
+
+적용된 버전:
+- Spring Boot: `3.2.5`
+- JDK: `17`
+- Dependency Management Plugin: `1.1.5`
+
+### AI Service (FastAPI)
+
+`ai-service/requirements.txt` 기준:
+
+- `fastapi==0.111.0`
+- `uvicorn[standard]==0.30.0`
+- `pydantic==2.8.2`
+- `httpx==0.27.0`
 
 ## 개발 순서
 
