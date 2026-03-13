@@ -194,8 +194,15 @@ company-research-ai/
 
 - `org.springframework.boot:spring-boot-starter-web`
 - `org.springframework.boot:spring-boot-starter-data-jpa`
+- `org.springframework.boot:spring-boot-starter-validation`
+- `org.springframework.boot:spring-boot-starter-actuator`
+- `org.springframework.boot:spring-boot-starter-security`
 - `org.postgresql:postgresql` (runtimeOnly)
+- `com.fasterxml.jackson.datatype:jackson-datatype-jsr310`
+- `org.springframework.boot:spring-boot-starter-webflux`
+- `org.apache.httpcomponents.client5:httpclient5`
 - `org.springframework.boot:spring-boot-starter-test`
+- `org.springframework.security:spring-security-test`
 
 적용된 버전:
 - Spring Boot: `3.2.5`
@@ -210,6 +217,17 @@ company-research-ai/
 - `uvicorn[standard]==0.30.0`
 - `pydantic==2.8.2`
 - `httpx==0.27.0`
+- `numpy==2.1.2`
+- `pandas==2.2.3`
+- `beautifulsoup4==4.12.3`
+- `lxml==5.3.0`
+- `openai==1.52.0`
+- `pgvector==0.2.5`
+- `sqlalchemy==2.0.36`
+- `asyncpg==0.30.0`
+- `python-dotenv==1.0.1`
+- `pytest==8.3.4`
+- `pytest-asyncio==0.24.0`
 
 ## 개발 순서
 

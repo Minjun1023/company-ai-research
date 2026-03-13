@@ -12,5 +12,7 @@
 /ai-service/__pycache__
 /env
 /secrets
+.env
 backend/build/
-infra/env/
+__pycache__/
+*.pyc

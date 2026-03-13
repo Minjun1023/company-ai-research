@@ -9,13 +9,13 @@
 
 # 1. Project Setup
 
-- [ ] GitHub Repository 생성
-- [ ] 프로젝트 기본 폴더 구조 생성
-- [ ] README.md 작성
-- [ ] Docker Compose 환경 구성
-- [ ] PostgreSQL 컨테이너 실행 확인
-- [ ] Spring Boot 프로젝트 생성
-- [ ] FastAPI 프로젝트 생성
+- [o] GitHub Repository 생성
+- [o] 프로젝트 기본 폴더 구조 생성
+- [o] README.md 작성
+- [o] Docker Compose 환경 구성
+- [o] PostgreSQL 컨테이너 실행 확인
+- [o] Spring Boot 프로젝트 생성
+- [o] FastAPI 프로젝트 생성
 
 ---
 
