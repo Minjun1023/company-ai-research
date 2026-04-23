@@ -14,5 +14,32 @@
 /secrets
 .env
 backend/build/
+.local-run/
+infra/env/
 __pycache__/
 *.pyc
+
+# 환경변수
+.envrc
+ai-service/.envrc
+backend/.envrc
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+
+# 인증서/키
+*.pem
+*.key
+*.p12
+*.jks
+*.crt
+*.pfx
+
+# 로컬 도구 캐시
+.claude/
+.playwright-mcp/
+
+# 스크린샷
+*.png

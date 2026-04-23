@@ -1,7 +1,11 @@
+name: company-ai-research
+
 services:
   postgres:
-    image: pgvector/pgvector:pg16
-    container_name: company-research-postgres
+    build:
+      context: .
+      dockerfile: infra/postgres/Dockerfile
+    container_name: company-ai-research-postgres
     ports:
       - "${POSTGRES_PORT:-5433}:5432"
     environment:
@@ -10,13 +14,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-company_research}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql
-      - ./infra/postgres/extensions.sql:/docker-entrypoint-initdb.d/02-extensions.sql
 
   backend:
     build:
       context: ./backend
-    container_name: company-research-backend
+    container_name: company-ai-research-backend
     depends_on:
       - postgres
     ports:
@@ -27,11 +29,14 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-company_research}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      # Docker 네트워크에서는 localhost가 backend 자신을 가리키므로 서비스명으로 고정한다.
+      AI_SERVICE_URL: ${AI_SERVICE_URL:-http://ai-service:8000}
 
   ai-service:
     build:
       context: ./ai-service
-    container_name: company-research-ai-service
+    container_name: company-ai-research-ai-service
     ports:
       - "${AI_SERVICE_PORT:-8000}:8000"
     env_file:
