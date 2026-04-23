@@ -1,2 +1,37 @@
 server:
   port: 8080
+
+# SQL 쿼리 로깅 (개발용)
+spring:
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    "[org.hibernate.SQL]": DEBUG
+    "[org.hibernate.orm.jdbc.bind]": TRACE
+
+ai-service:
+  # local backend 실행 시 ai-service 기본 주소
+  base-url: ${AI_SERVICE_URL:http://localhost:8000}
+
+jwt:
+  secret: ${JWT_SECRET:local-dev-secret-key-must-be-at-least-32-chars}
+  expiration: 86400000 # 24시간 (ms)
+
+email:
+  from: ${MAIL_USERNAME:no-reply@company-ai.local}
+  verification:
+    code-ttl-minutes: 5
+    token-ttl-minutes: 30
+
+oauth:
+  kakao:
+    rest-api-key: ${KAKAO_REST_API_KEY:}
+    client-secret: ${KAKAO_CLIENT_SECRET:}
+  naver:
+    client-id: ${NAVER_CLIENT_ID:}
+    client-secret: ${NAVER_CLIENT_SECRET:}
