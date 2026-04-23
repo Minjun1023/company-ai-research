@@ -1,0 +1,793 @@
+openapi: 3.0.3
+info:
+  title: Company Research AI Service API
+  version: 0.1.0
+  description: |
+    FastAPI 기반 AI 서비스 명세서.
+    실제 구현된 `/internal/*` 엔드포인트와 파일 업로드, 검색, 건강 상태 확인 API를 기준으로 작성했다.
+servers:
+  - url: http://localhost:8000
+tags:
+  - name: Health
+  - name: Search
+  - name: Crawl
+  - name: Embedding
+  - name: Intent
+  - name: QA
+  - name: Research
+  - name: Compare
+  - name: Interview
+  - name: CoverLetter
+  - name: Salary
+  - name: Resume
+  - name: General
+components:
+  schemas:
+    ContextItem:
+      type: object
+      additionalProperties: true
+      description: AI 서비스 내부에서 사용하는 문맥 객체. sourceUrl, source_type, content 등을 포함할 수 있다.
+    CompanyInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        dart_corp_code:
+          type: string
+          default: ""
+        contexts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextItem'
+    CompareRequest:
+      type: object
+      required: [question, companies]
+      properties:
+        question:
+          type: string
+        companies:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompanyInput'
+        model:
+          type: string
+          default: gpt-4o-mini
+    AnswerWithContexts:
+      type: object
+      properties:
+        answer:
+          type: string
+        contexts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextItem'
+    MessageItem:
+      type: object
+      required: [role, content]
+      properties:
+        role:
+          type: string
+          example: user
+        content:
+          type: string
+    CompletionResponse:
+      type: object
+      properties:
+        answer:
+          type: string
+        is_complete:
+          type: boolean
+    ResearchRequest:
+      type: object
+      required: [company_name]
+      properties:
+        company_name:
+          type: string
+        dart_corp_code:
+          type: string
+          default: ""
+        contexts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextItem'
+        model:
+          type: string
+          default: gpt-4o-mini
+    InterviewRequest:
+      type: object
+      required: [company_name]
+      properties:
+        company_name:
+          type: string
+        dart_corp_code:
+          type: string
+          default: ""
+        contexts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextItem'
+        resume_text:
+          type: string
+          default: ""
+        model:
+          type: string
+          default: gpt-4o-mini
+    CoverLetterRequest:
+      type: object
+      required: [company_name]
+      properties:
+        company_name:
+          type: string
+        job_role:
+          type: string
+          default: ""
+        contexts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextItem'
+        model:
+          type: string
+          default: gpt-4o-mini
+    CoverLetterFeedbackRequest:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        company_name:
+          type: string
+          default: ""
+        company_contexts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextItem'
+        job_url:
+          type: string
+          default: ""
+        model:
+          type: string
+          default: gpt-4o-mini
+    SalaryRequest:
+      type: object
+      required: [company_name]
+      properties:
+        company_name:
+          type: string
+        job_role:
+          type: string
+          default: ""
+        career_years:
+          type: string
+          default: ""
+        contexts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextItem'
+        model:
+          type: string
+          default: gpt-4o-mini
+    QARequest:
+      type: object
+      required: [question, prompt]
+      properties:
+        question:
+          type: string
+          maxLength: 2000
+        prompt:
+          type: string
+          maxLength: 8000
+        model:
+          type: string
+          default: gpt-4o-mini
+        contexts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextItem'
+        company_name:
+          type: string
+          default: ""
+        dart_corp_code:
+          type: string
+          default: ""
+    QAResponse:
+      type: object
+      properties:
+        model:
+          type: string
+        answer:
+          type: string
+        context_count:
+          type: integer
+        used_contexts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextItem'
+    EmbeddingRequest:
+      type: object
+      properties:
+        texts:
+          type: array
+          items:
+            type: string
+        model:
+          type: string
+          default: text-embedding-3-small
+    EmbeddingResponse:
+      type: object
+      properties:
+        model:
+          type: string
+        embeddings:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+              format: float
+        metadata:
+          type: object
+          additionalProperties: true
+    IntentRequest:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+    IntentResponse:
+      type: object
+      properties:
+        intent:
+          type: string
+        company_name:
+          type: string
+          nullable: true
+        company_names:
+          type: array
+          items:
+            type: string
+    GeneralChatRequest:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 2000
+    GeneralChatResponse:
+      type: object
+      properties:
+        answer:
+          type: string
+    CrawlRequest:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+          format: uri
+    CrawlResponse:
+      type: object
+      properties:
+        source_url:
+          type: string
+        links:
+          type: array
+          items:
+            type: string
+        page_type_map:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        extracted_text:
+          type: object
+          additionalProperties:
+            type: string
+        documents:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    CompanyUrlRequest:
+      type: object
+      required: [company_name]
+      properties:
+        company_name:
+          type: string
+    CompanyUrlResponse:
+      type: object
+      properties:
+        company_name:
+          type: string
+        url:
+          type: string
+          nullable: true
+    DartCompanyItem:
+      type: object
+      properties:
+        name:
+          type: string
+        corp_code:
+          type: string
+          nullable: true
+    CompanyCandidateItem:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        url:
+          type: string
+          nullable: true
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: AI 서비스 헬스 체크
+      responses:
+        '200':
+          description: 정상 상태
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  service:
+                    type: string
+                  status:
+                    type: string
+  /internal/search/company-url:
+    post:
+      tags: [Search]
+      summary: 회사 공식 URL 검색
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyUrlRequest'
+      responses:
+        '200':
+          description: 검색 결과
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyUrlResponse'
+  /internal/search/companies:
+    get:
+      tags: [Search]
+      summary: 회사명 자동완성 검색
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          description: 자동완성 결과
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DartCompanyItem'
+  /internal/search/company-candidates:
+    get:
+      tags: [Search]
+      summary: 동명 회사 후보 검색
+      parameters:
+        - in: query
+          name: name
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          description: 후보 목록
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CompanyCandidateItem'
+  /internal/dart/corp-code:
+    post:
+      tags: [Crawl]
+      summary: DART 법인 코드 및 업종 조회
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                company_name:
+                  type: string
+      responses:
+        '200':
+          description: 조회 결과
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  corp_code:
+                    type: string
+                    nullable: true
+                  industry:
+                    type: string
+                  company_name:
+                    type: string
+                    nullable: true
+  /internal/crawl:
+    post:
+      tags: [Crawl]
+      summary: 회사 웹사이트 크롤링
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrawlRequest'
+      responses:
+        '200':
+          description: 크롤링 결과
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CrawlResponse'
+  /internal/embeddings:
+    post:
+      tags: [Embedding]
+      summary: 텍스트 임베딩 생성
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmbeddingRequest'
+      responses:
+        '200':
+          description: 임베딩 생성 결과
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmbeddingResponse'
+  /internal/classify-intent:
+    post:
+      tags: [Intent]
+      summary: 사용자 의도 분류
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntentRequest'
+      responses:
+        '200':
+          description: 분류 결과
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntentResponse'
+  /internal/answer:
+    post:
+      tags: [QA]
+      summary: RAG 질문 응답 생성
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QARequest'
+      responses:
+        '200':
+          description: 답변 생성 완료
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QAResponse'
+        '422':
+          description: 질문/프롬프트 길이 초과 또는 금지 패턴 포함
+  /internal/research:
+    post:
+      tags: [Research]
+      summary: 회사 심층 분석 리포트 생성
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResearchRequest'
+      responses:
+        '200':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnswerWithContexts'
+  /internal/compare:
+    post:
+      tags: [Compare]
+      summary: 여러 회사 비교 분석
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompareRequest'
+      responses:
+        '200':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnswerWithContexts'
+  /internal/interview:
+    post:
+      tags: [Interview]
+      summary: 회사 면접 준비 가이드 생성
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterviewRequest'
+      responses:
+        '200':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnswerWithContexts'
+  /internal/interview-prep-consult:
+    post:
+      tags: [Interview]
+      summary: 대화형 면접 준비 상담
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/MessageItem'
+                company_name:
+                  type: string
+                company_contexts:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ContextItem'
+                model:
+                  type: string
+      responses:
+        '200':
+          description: 상담 응답
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompletionResponse'
+  /internal/interview-practice:
+    post:
+      tags: [Interview]
+      summary: 대화형 모의 면접
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/MessageItem'
+                company_name:
+                  type: string
+                company_contexts:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ContextItem'
+                model:
+                  type: string
+      responses:
+        '200':
+          description: 면접 진행 응답
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompletionResponse'
+  /internal/coverletter:
+    post:
+      tags: [CoverLetter]
+      summary: 자기소개서 초안 생성
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoverLetterRequest'
+      responses:
+        '200':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnswerWithContexts'
+  /internal/coverletter-feedback:
+    post:
+      tags: [CoverLetter]
+      summary: 자기소개서 피드백 생성
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoverLetterFeedbackRequest'
+      responses:
+        '200':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnswerWithContexts'
+  /internal/coverletter-consult:
+    post:
+      tags: [CoverLetter]
+      summary: 대화형 자기소개서 상담
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/MessageItem'
+                company_name:
+                  type: string
+                company_contexts:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ContextItem'
+                model:
+                  type: string
+      responses:
+        '200':
+          description: 상담 응답
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompletionResponse'
+  /internal/salary:
+    post:
+      tags: [Salary]
+      summary: 연봉 협상 가이드 생성
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalaryRequest'
+      responses:
+        '200':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnswerWithContexts'
+  /internal/salary-negotiation:
+    post:
+      tags: [Salary]
+      summary: 대화형 연봉 협상 컨설팅
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/MessageItem'
+                company_name:
+                  type: string
+                company_contexts:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ContextItem'
+                model:
+                  type: string
+      responses:
+        '200':
+          description: 상담 응답
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompletionResponse'
+  /internal/parse-resume:
+    post:
+      tags: [Resume]
+      summary: 이력서 파일 파싱
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: 파싱 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  text:
+                    type: string
+        '400':
+          description: 형식/크기 오류
+        '422':
+          description: 파일 파싱 실패
+  /internal/resume-interview:
+    post:
+      tags: [Resume]
+      summary: 자기소개서 기반 예상 면접 질문 생성
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message:
+                  type: string
+                company_name:
+                  type: string
+                company_contexts:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ContextItem'
+                model:
+                  type: string
+      responses:
+        '200':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnswerWithContexts'
+  /internal/general-chat:
+    post:
+      tags: [General]
+      summary: 취업/커리어 범용 채팅
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeneralChatRequest'
+      responses:
+        '200':
+          description: 응답 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralChatResponse'

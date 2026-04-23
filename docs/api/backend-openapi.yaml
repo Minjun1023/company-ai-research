@@ -1,0 +1,1242 @@
+openapi: 3.0.3
+info:
+  title: Company Research Backend API
+  version: 0.1.0
+  description: |
+    Spring Boot 기반 백엔드 API 명세서.
+    현재 구현된 인증, 회사 관리, 질문/RAG, 대화, 아티팩트 저장 기능을 기준으로 작성했다.
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: Auth
+  - name: Companies
+  - name: Questions
+  - name: Conversations
+  - name: Chat
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    companyIdParam:
+      name: companyId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    companyEntityIdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    conversationIdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+  schemas:
+    ErrorMessage:
+      type: object
+      properties:
+        message:
+          type: string
+        error:
+          type: string
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          nullable: true
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        careerLevel:
+          type: string
+          nullable: true
+        desiredJob:
+          type: string
+          nullable: true
+        techStack:
+          type: string
+          nullable: true
+        desiredIndustry:
+          type: string
+          nullable: true
+        resumeText:
+          type: string
+          nullable: true
+        isNewUser:
+          type: boolean
+        hasPassword:
+          type: boolean
+    RegisterRequest:
+      type: object
+      required: [email, name, password, verifiedToken]
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        password:
+          type: string
+          minLength: 8
+        verifiedToken:
+          type: string
+        careerLevel:
+          type: string
+        desiredJob:
+          type: string
+        techStack:
+          type: string
+        desiredIndustry:
+          type: string
+        resumeText:
+          type: string
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    CompanyResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        website:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        companyType:
+          type: string
+          nullable: true
+        lastCrawledAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateCompanyRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        website:
+          type: string
+        description:
+          type: string
+    UpdateCompanyRequest:
+      type: object
+      properties:
+        website:
+          type: string
+    CompanySearchResult:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          nullable: true
+        name:
+          type: string
+        website:
+          type: string
+          nullable: true
+        registered:
+          type: boolean
+        description:
+          type: string
+          nullable: true
+    CompanyCrawlResponse:
+      type: object
+      properties:
+        companyId:
+          type: integer
+          format: int64
+        sourceUrl:
+          type: string
+        links:
+          type: array
+          items:
+            type: string
+        pageTypeMap:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        extractedText:
+          type: object
+          additionalProperties:
+            type: string
+        savedDocumentCount:
+          type: integer
+        totalChunkCount:
+          type: integer
+        embeddedChunkCount:
+          type: integer
+    DocumentSearchRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+        topK:
+          type: integer
+          minimum: 1
+          maximum: 20
+        sourceTypeFilter:
+          type: string
+          nullable: true
+    DocumentSearchResponseItem:
+      type: object
+      properties:
+        documentId:
+          type: integer
+          format: int64
+        chunkIndex:
+          type: integer
+        sourceUrl:
+          type: string
+          nullable: true
+        sourceType:
+          type: string
+          nullable: true
+        pageTitle:
+          type: string
+          nullable: true
+        content:
+          type: string
+        score:
+          type: number
+          format: double
+    AiTextResponse:
+      type: object
+      properties:
+        companyName:
+          type: string
+        answer:
+          type: string
+        externalContexts:
+          type: array
+          items:
+            type: object
+            properties:
+              sourceUrl:
+                type: string
+                nullable: true
+              source_type:
+                type: string
+                nullable: true
+    CreateQuestionRequest:
+      type: object
+      required: [questionText]
+      properties:
+        questionText:
+          type: string
+    AskQuestionRequest:
+      type: object
+      required: [questionText]
+      properties:
+        questionText:
+          type: string
+        topK:
+          type: integer
+          minimum: 1
+          maximum: 20
+        userName:
+          type: string
+          nullable: true
+    QuestionResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        companyId:
+          type: integer
+          format: int64
+        userQuestionType:
+          type: string
+          nullable: true
+        questionText:
+          type: string
+        answerText:
+          type: string
+          nullable: true
+        sourceType:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    RagContextItem:
+      type: object
+      properties:
+        documentId:
+          type: integer
+          format: int64
+          nullable: true
+        chunkIndex:
+          type: integer
+          nullable: true
+        sourceUrl:
+          type: string
+          nullable: true
+        pageTitle:
+          type: string
+          nullable: true
+        sourceType:
+          type: string
+          nullable: true
+        content:
+          type: string
+          nullable: true
+        score:
+          type: number
+          format: double
+          nullable: true
+    AskQuestionResponse:
+      type: object
+      properties:
+        question:
+          $ref: '#/components/schemas/QuestionResponse'
+        prompt:
+          type: string
+        contexts:
+          type: array
+          items:
+            $ref: '#/components/schemas/RagContextItem'
+        externalContexts:
+          type: array
+          items:
+            $ref: '#/components/schemas/RagContextItem'
+    ConversationMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        role:
+          type: string
+        content:
+          type: string
+        meta:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    ConversationArtifact:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        conversationId:
+          type: integer
+          format: int64
+        sourceMessageId:
+          type: integer
+          format: int64
+        artifactType:
+          type: string
+          enum: [research, compare, interview, coverletter, feedback, salary]
+        title:
+          type: string
+        content:
+          type: string
+        meta:
+          type: string
+          nullable: true
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ConversationResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        sessionType:
+          type: string
+          enum: [general, research, compare, interview, coverletter, salary]
+        selectedCompanyId:
+          type: integer
+          format: int64
+          nullable: true
+        mode:
+          type: string
+        modeState:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConversationMessage'
+    ChatRespondRequest:
+      type: object
+      required: [conversationId, message, persistUserMessage]
+      properties:
+        conversationId:
+          type: integer
+          format: int64
+        message:
+          type: string
+        persistUserMessage:
+          type: boolean
+    ChatRespondResponse:
+      type: object
+      properties:
+        conversationId:
+          type: integer
+          format: int64
+        title:
+          type: string
+        sessionType:
+          type: string
+        selectedCompanyId:
+          type: integer
+          format: int64
+          nullable: true
+        mode:
+          type: string
+        modeState:
+          type: string
+          nullable: true
+        userMessage:
+          $ref: '#/components/schemas/ConversationMessage'
+        assistantMessage:
+          $ref: '#/components/schemas/ConversationMessage'
+        artifact:
+          $ref: '#/components/schemas/ConversationArtifact'
+security:
+  - cookieAuth: []
+paths:
+  /auth/email/check:
+    get:
+      tags: [Auth]
+      summary: 이메일 중복 확인
+      security: []
+      parameters:
+        - in: query
+          name: email
+          required: true
+          schema:
+            type: string
+            format: email
+      responses:
+        '200':
+          description: 사용 가능 여부
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available:
+                    type: boolean
+  /auth/email/send-code:
+    post:
+      tags: [Auth]
+      summary: 이메일 인증 코드 발송
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: 발송 완료
+  /auth/email/verify:
+    post:
+      tags: [Auth]
+      summary: 이메일 인증 코드 검증
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, code]
+              properties:
+                email:
+                  type: string
+                  format: email
+                code:
+                  type: string
+      responses:
+        '200':
+          description: 검증 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verifiedToken:
+                    type: string
+  /auth/password/check-same:
+    post:
+      tags: [Auth]
+      summary: 기존 비밀번호와 동일 여부 확인
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                verifiedToken:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: 비교 결과
+  /auth/password/verify:
+    post:
+      tags: [Auth]
+      summary: 현재 비밀번호 검증
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+      responses:
+        '200':
+          description: 검증 성공
+  /auth/password/change:
+    put:
+      tags: [Auth]
+      summary: 비밀번호 변경
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword:
+                  type: string
+                newPassword:
+                  type: string
+      responses:
+        '200':
+          description: 변경 완료
+  /auth/account:
+    delete:
+      tags: [Auth]
+      summary: 회원 탈퇴
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                provider:
+                  type: string
+      responses:
+        '204':
+          description: 삭제 완료
+  /auth/password/reset:
+    post:
+      tags: [Auth]
+      summary: 비밀번호 재설정
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, verifiedToken, newPassword]
+              properties:
+                email:
+                  type: string
+                verifiedToken:
+                  type: string
+                newPassword:
+                  type: string
+      responses:
+        '200':
+          description: 재설정 완료
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: 회원가입
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: 가입 성공
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: 로그인
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 로그인 성공
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: 로그아웃
+      responses:
+        '204':
+          description: 로그아웃 완료
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: 현재 로그인 사용자 조회
+      responses:
+        '200':
+          description: 사용자 정보
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: 미인증
+  /auth/profile/resume-upload:
+    post:
+      tags: [Auth]
+      summary: 이력서 파일 업로드 및 텍스트 추출
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: 파싱 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resumeText:
+                    type: string
+        '400':
+          description: 잘못된 파일
+  /auth/profile:
+    put:
+      tags: [Auth]
+      summary: 프로필 수정
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                careerLevel:
+                  type: string
+                desiredJob:
+                  type: string
+                techStack:
+                  type: string
+                desiredIndustry:
+                  type: string
+                resumeText:
+                  type: string
+      responses:
+        '200':
+          description: 수정 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /auth/social/google:
+    post:
+      tags: [Auth]
+      summary: 구글 소셜 로그인
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: 로그인 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /auth/social/kakao:
+    post:
+      tags: [Auth]
+      summary: 카카오 소셜 로그인
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                redirect_uri:
+                  type: string
+      responses:
+        '200':
+          description: 로그인 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /auth/social/naver:
+    post:
+      tags: [Auth]
+      summary: 네이버 소셜 로그인
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                state:
+                  type: string
+      responses:
+        '200':
+          description: 로그인 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /companies:
+    get:
+      tags: [Companies]
+      summary: 회사 목록 조회
+      responses:
+        '200':
+          description: 회사 목록
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CompanyResponse'
+    post:
+      tags: [Companies]
+      summary: 회사 생성
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCompanyRequest'
+      responses:
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyResponse'
+  /companies/search:
+    get:
+      tags: [Companies]
+      summary: 회사 검색
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 검색 결과
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CompanySearchResult'
+  /companies/candidates:
+    get:
+      tags: [Companies]
+      summary: 동명 회사 후보 조회
+      parameters:
+        - in: query
+          name: name
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 후보 목록
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CompanySearchResult'
+  /companies/find-url:
+    get:
+      tags: [Companies]
+      summary: 회사 URL 추정
+      parameters:
+        - in: query
+          name: name
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: URL 조회 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+  /companies/{id}:
+    get:
+      tags: [Companies]
+      summary: 회사 단건 조회
+      parameters:
+        - $ref: '#/components/parameters/companyEntityIdParam'
+      responses:
+        '200':
+          description: 회사 정보
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyResponse'
+    patch:
+      tags: [Companies]
+      summary: 회사 URL 수정
+      parameters:
+        - $ref: '#/components/parameters/companyEntityIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCompanyRequest'
+      responses:
+        '200':
+          description: 수정 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyResponse'
+    delete:
+      tags: [Companies]
+      summary: 회사 삭제
+      parameters:
+        - $ref: '#/components/parameters/companyEntityIdParam'
+      responses:
+        '204':
+          description: 삭제 성공
+  /companies/{companyId}/crawl:
+    post:
+      tags: [Companies]
+      summary: 회사 크롤링 및 문서 저장
+      parameters:
+        - $ref: '#/components/parameters/companyIdParam'
+      responses:
+        '200':
+          description: 크롤링 결과
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyCrawlResponse'
+  /companies/{companyId}/documents/search:
+    post:
+      tags: [Companies]
+      summary: 회사 문서 유사도 검색
+      parameters:
+        - $ref: '#/components/parameters/companyIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentSearchRequest'
+      responses:
+        '200':
+          description: 검색 결과
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentSearchResponseItem'
+  /companies/{companyId}/coverletter:
+    post:
+      tags: [Companies]
+      summary: 자기소개서 초안 생성
+      parameters:
+        - $ref: '#/components/parameters/companyIdParam'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                jobRole:
+                  type: string
+      responses:
+        '200':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiTextResponse'
+  /companies/{companyId}/interview:
+    post:
+      tags: [Companies]
+      summary: 면접 준비 가이드 생성
+      parameters:
+        - $ref: '#/components/parameters/companyIdParam'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resumeText:
+                  type: string
+      responses:
+        '200':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiTextResponse'
+  /companies/{companyId}/salary:
+    post:
+      tags: [Companies]
+      summary: 연봉 협상 가이드 생성
+      parameters:
+        - $ref: '#/components/parameters/companyIdParam'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                jobRole:
+                  type: string
+                careerYears:
+                  type: string
+      responses:
+        '200':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiTextResponse'
+  /companies/{companyId}/research:
+    post:
+      tags: [Companies]
+      summary: 심층 리서치 리포트 생성
+      parameters:
+        - $ref: '#/components/parameters/companyIdParam'
+      responses:
+        '200':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiTextResponse'
+  /companies/{companyId}/questions:
+    get:
+      tags: [Questions]
+      summary: 질문 목록 조회
+      parameters:
+        - $ref: '#/components/parameters/companyIdParam'
+      responses:
+        '200':
+          description: 질문 목록
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuestionResponse'
+    post:
+      tags: [Questions]
+      summary: 질문 저장
+      parameters:
+        - $ref: '#/components/parameters/companyIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQuestionRequest'
+      responses:
+        '201':
+          description: 저장 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionResponse'
+  /companies/{companyId}/questions/ask:
+    post:
+      tags: [Questions]
+      summary: RAG 질문 응답 생성
+      parameters:
+        - $ref: '#/components/parameters/companyIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AskQuestionRequest'
+      responses:
+        '200':
+          description: 답변 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AskQuestionResponse'
+  /conversations:
+    get:
+      tags: [Conversations]
+      summary: 현재 사용자 대화 목록 조회
+      responses:
+        '200':
+          description: 대화 목록
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConversationResponse'
+    post:
+      tags: [Conversations]
+      summary: 새 대화 생성
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title:
+                  type: string
+                sessionType:
+                  type: string
+                  enum: [general, research, compare, interview, coverletter, salary]
+      responses:
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationResponse'
+  /conversations/{id}:
+    patch:
+      tags: [Conversations]
+      summary: 대화 상태/제목/선택 회사 수정
+      parameters:
+        - $ref: '#/components/parameters/conversationIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                sessionType:
+                  type: string
+                selectedCompanyId:
+                  type: integer
+                  format: int64
+                mode:
+                  type: string
+                modeState:
+                  type: string
+      responses:
+        '200':
+          description: 수정 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationResponse'
+    delete:
+      tags: [Conversations]
+      summary: 대화 삭제
+      parameters:
+        - $ref: '#/components/parameters/conversationIdParam'
+      responses:
+        '204':
+          description: 삭제 성공
+  /conversations/{id}/messages:
+    post:
+      tags: [Conversations]
+      summary: 대화 메시지 수동 추가
+      parameters:
+        - $ref: '#/components/parameters/conversationIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role, content]
+              properties:
+                role:
+                  type: string
+                  enum: [user, assistant, system]
+                content:
+                  type: string
+                meta:
+                  type: string
+                  nullable: true
+      responses:
+        '201':
+          description: 저장 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationMessage'
+  /conversations/{id}/artifacts:
+    get:
+      tags: [Conversations]
+      summary: 대화 결과물 목록 조회
+      parameters:
+        - $ref: '#/components/parameters/conversationIdParam'
+      responses:
+        '200':
+          description: 저장된 결과물 목록
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConversationArtifact'
+  /chat/respond:
+    post:
+      tags: [Chat]
+      summary: 통합 채팅 응답 생성
+      description: |
+        현재 세션 타입과 mode 상태를 기준으로 research/compare/interview/coverletter/salary 흐름을 라우팅한다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRespondRequest'
+      responses:
+        '200':
+          description: 응답 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatRespondResponse'

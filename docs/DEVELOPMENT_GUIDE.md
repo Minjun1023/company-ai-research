@@ -1,269 +1,115 @@
 # Development Guide
 
-이 문서는 Company Research AI 프로젝트 개발 시 참고하는 개발 가이드입니다.
+## 1) 실행 개요
 
-# Project Folder Structure
+Project는 다음 방식으로 운영합니다.
 
-company-research-ai/
-├── README.md
-├── docker-compose.yml
-├── .gitignore
-├── .env.example
-│
-├── backend/                          # Spring Boot 메인 백엔드
-│   ├── build.gradle
-│   ├── settings.gradle
-│   ├── Dockerfile
-│   ├── gradlew
-│   ├── gradlew.bat
-│   └── src/
-│       ├── main/
-│       │   ├── java/com/companyresearch/
-│       │   │   ├── CompanyResearchApplication.java
-│       │   │   │
-│       │   │   ├── common/
-│       │   │   │   ├── config/
-│       │   │   │   ├── exception/
-│       │   │   │   ├── response/
-│       │   │   │   └── util/
-│       │   │   │
-│       │   │   ├── domain/
-│       │   │   │   ├── company/
-│       │   │   │   │   ├── controller/
-│       │   │   │   │   ├── service/
-│       │   │   │   │   ├── repository/
-│       │   │   │   │   ├── entity/
-│       │   │   │   │   └── dto/
-│       │   │   │   │
-│       │   │   │   ├── review/
-│       │   │   │   │   ├── controller/
-│       │   │   │   │   ├── service/
-│       │   │   │   │   ├── repository/
-│       │   │   │   │   ├── entity/
-│       │   │   │   │   └── dto/
-│       │   │   │   │
-│       │   │   │   ├── document/
-│       │   │   │   │   ├── service/
-│       │   │   │   │   ├── repository/
-│       │   │   │   │   ├── entity/
-│       │   │   │   │   └── dto/
-│       │   │   │   │
-│       │   │   │   ├── question/
-│       │   │   │   │   ├── controller/
-│       │   │   │   │   ├── service/
-│       │   │   │   │   ├── repository/
-│       │   │   │   │   ├── entity/
-│       │   │   │   │   └── dto/
-│       │   │   │   │
-│       │   │   │   └── user/
-│       │   │   │       ├── controller/
-│       │   │   │       ├── service/
-│       │   │   │       ├── repository/
-│       │   │   │       ├── entity/
-│       │   │   │       └── dto/
-│       │   │   │
-│       │   │   └── infra/
-│       │   │       ├── client/      # FastAPI 호출
-│       │   │       ├── persistence/
-│       │   │       └── scheduler/
-│       │   │
-│       │   └── resources/
-│       │       ├── application.yml
-│       │       ├── application-local.yml
-│       │       ├── application-prod.yml
-│       │       └── db/migration/
-│       │
-│       └── test/
-│
-├── ai-service/                       # FastAPI AI/RAG 서비스
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── app/
-│       ├── main.py
-│       │
-│       ├── api/
-│       │   ├── health.py
-│       │   ├── crawl.py
-│       │   ├── embed.py
-│       │   ├── ask.py
-│       │   └── classify.py
-│       │
-│       ├── core/
-│       │   ├── config.py
-│       │   ├── logging.py
-│       │   └── constants.py
-│       │
-│       ├── services/
-│       │   ├── crawler/
-│       │   │   ├── crawler_service.py
-│       │   │   ├── html_fetcher.py
-│       │   │   ├── link_discovery_service.py
-│       │   │   └── page_classifier.py
-│       │   │
-│       │   ├── extractor/
-│       │   │   ├── content_extractor.py
-│       │   │   ├── cleaner.py
-│       │   │   └── boilerplate_remover.py
-│       │   │
-│       │   ├── embedding/
-│       │   │   ├── embedding_service.py
-│       │   │   └── chunking_service.py
-│       │   │
-│       │   ├── retrieval/
-│       │   │   ├── vector_search_service.py
-│       │   │   ├── keyword_search_service.py
-│       │   │   ├── hybrid_search_service.py
-│       │   │   └── rerank_service.py
-│       │   │
-│       │   ├── qa/
-│       │   │   ├── question_classifier.py
-│       │   │   ├── answer_service.py
-│       │   │   └── source_formatter.py
-│       │   │
-│       │   └── review/
-│       │       ├── review_analysis_service.py
-│       │       └── review_embedding_service.py
-│       │
-│       ├── repositories/
-│       │   ├── document_repository.py
-│       │   ├── review_repository.py
-│       │   └── vector_repository.py
-│       │
-│       ├── models/
-│       │   ├── requests/
-│       │   └── responses/
-│       │
-│       ├── prompts/
-│       │   ├── classify_question.txt
-│       │   ├── company_answer.txt
-│       │   ├── review_answer.txt
-│       │   └── mixed_answer.txt
-│       │
-│       └── utils/
-│           ├── text_utils.py
-│           ├── token_utils.py
-│           └── url_utils.py
-│
-├── demo/                             # 최소 데모 페이지
-│   ├── index.html
-│   ├── app.js
-│   └── style.css
-│
-├── infra/                            # 인프라 설정
-│   ├── docker/
-│   ├── postgres/
-│   │   ├── init.sql
-│   │   └── extensions.sql
-│
-├── scripts/                          # 실행/초기화 스크립트
-│   ├── run-local.sh
-│   ├── stop-local.sh
-│   ├── reset-db.sh
-│   └── seed-data.sh
-│
-└── docs/                             # 프로젝트 문서
-    ├── ARCHITECTURE.md
-    ├── DEVELOPMENT_GUIDE.md
-    ├── RAG_DESIGN.md
-    ├── SYSTEM_FLOW.md
-    ├── CODING_GUIDE.md
-    └── TASK_LIST.md
+- Docker DB + 로컬 또는 Docker 앱 동시 실행 지원
+- 기본 실행 우선순위:
+  1) `docker compose up -d postgres`
+  2) 백엔드/AI 서비스 실행
 
-## 프로젝트 목표
-회사 데이터를 분석하고 AI 기반 질의응답을 제공하는 시스템 구축
+## 2) 폴더 구조(현재 기준)
 
-## 핵심 기능
-- 회사 등록
-- 회사 크롤링
-- 회사 분석
-- AI 질문 응답
-- 리뷰 작성
-- 리뷰 기반 분석
+- `backend/`: Spring Boot API 서버
+  - `domain`: 회사/문서/질문/로그 도메인
+  - `common`: 공통 설정/예외 처리
+  - `infra`: AI Service 호출 클라이언트
+- `ai-service/`: FastAPI 기반 AI 파이프라인
+  - `api/` : `crawl`, `embeddings`, `answer`, `health`
+  - `services/` : 크롤링, 임베딩, 검색/질의 응답
+- `infra/`: PostgreSQL 초기화 SQL
+- `docs/`: 아키텍처/흐름/작업 체크리스트
 
-## 환경 변수 운영 방식
+## 3) 실행 순서
 
-- 단일 `.env` 중심으로 운영합니다.
-- `.env.example`을 기준으로 실제 값을 `.env`에 입력해 사용하세요.
-- 운영 환경에서도 서비스별 파일 분기는 없고, 같은 `.env` 기반으로 주입됩니다.
+```bash
+cp .env.example .env
+# .env 값 채우기
 
-## 의존성
+docker compose up -d postgres
 
-### Backend (Spring Boot)
+docker compose up -d backend ai-service
+```
 
-`backend/build.gradle` 기준:
+로컬 실행(백엔드/AI 직접 실행)도 가능합니다.
 
-- `org.springframework.boot:spring-boot-starter-web`
-- `org.springframework.boot:spring-boot-starter-data-jpa`
-- `org.springframework.boot:spring-boot-starter-validation`
-- `org.springframework.boot:spring-boot-starter-actuator`
-- `org.springframework.boot:spring-boot-starter-security`
-- `org.postgresql:postgresql` (runtimeOnly)
-- `com.fasterxml.jackson.datatype:jackson-datatype-jsr310`
-- `org.springframework.boot:spring-boot-starter-webflux`
-- `org.apache.httpcomponents.client5:httpclient5`
-- `org.springframework.boot:spring-boot-starter-test`
-- `org.springframework.security:spring-security-test`
+```bash
+cd backend
+./gradlew bootRun
 
-적용된 버전:
-- Spring Boot: `3.2.5`
-- JDK: `17`
-- Dependency Management Plugin: `1.1.5`
+cd ../ai-service
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
 
-### AI Service (FastAPI)
+## 4) 확인 명령
 
-`ai-service/requirements.txt` 기준:
+- `docker compose ps`
+- `curl -s http://localhost:8080/actuator/health`
+- `curl -s http://localhost:8000/health`
 
-- `fastapi==0.111.0`
-- `uvicorn[standard]==0.30.0`
-- `pydantic==2.8.2`
-- `httpx==0.27.0`
-- `numpy==2.1.2`
-- `pandas==2.2.3`
-- `beautifulsoup4==4.12.3`
-- `lxml==5.3.0`
-- `openai==1.52.0`
-- `pgvector==0.2.5`
-- `sqlalchemy==2.0.36`
-- `asyncpg==0.30.0`
-- `python-dotenv==1.0.1`
-- `pytest==8.3.4`
-- `pytest-asyncio==0.24.0`
+## 5) 주요 API
 
-## 개발 순서
+- Company
+  - `POST /companies`
+  - `GET /companies`
+  - `GET /companies/search`
+  - `GET /companies/candidates`
+  - `GET /companies/find-url`
+  - `GET /companies/{id}`
+  - `POST /companies/{id}/crawl`
+  - `POST /companies/{id}/documents/search`
+  - `POST /companies/{id}/research`
+  - `POST /companies/{id}/coverletter`
+  - `POST /companies/{id}/interview`
+  - `POST /companies/{id}/salary`
+- Question
+  - `POST /companies/{companyId}/questions`
+  - `GET /companies/{companyId}/questions`
+  - `POST /companies/{companyId}/questions/ask`
+- Conversation
+  - `GET /conversations`
+  - `POST /conversations`
+  - `PATCH /conversations/{id}`
+  - `DELETE /conversations/{id}`
+  - `POST /conversations/{id}/messages`
+  - `GET /conversations/{id}/artifacts`
+- Chat
+  - `POST /chat/respond`
+- Auth
+  - `GET /auth/email/check`
+  - `POST /auth/email/send-code`
+  - `POST /auth/email/verify`
+  - `POST /auth/register`
+  - `POST /auth/login`
+  - `POST /auth/logout`
+  - `GET /auth/me`
+  - `POST /auth/password/check-same`
+  - `POST /auth/password/verify`
+  - `PUT /auth/password/change`
+  - `POST /auth/password/reset`
+  - `PUT /auth/profile`
+  - `POST /auth/profile/resume-upload`
+  - `DELETE /auth/account`
+  - `POST /auth/social/google`
+  - `POST /auth/social/kakao`
+  - `POST /auth/social/naver`
+## 6) 테스트
 
-1. Company API 구현
-2. Review API 구현
-3. Crawling 기능 구현
-4. Embedding 생성
-5. Vector Search
-6. RAG 질문 응답
-7. Demo Page 구현
+- 테스트 위치: `backend/src/test/java/...`
+- 실행: `./gradlew test`
 
-## Backend 구조
+## 7) 예외 처리 원칙
 
-domain/
-- company
-- review
-- document
-- question
-- user
+- 컨트롤러는 로직만 처리
+- 공통 예외 응답은 `@RestControllerAdvice`(`GlobalExceptionHandler`)로 일괄 처리
 
-각 도메인 구조
+## 8) 환경변수 전략
 
-controller/
-service/
-repository/
-entity/
-dto/
+현재는 단일 `.env`로 관리.
 
-## Git 전략
-
-main
-feature/*
-
-예
-
-feature/company-api
-feature/review-api
-feature/crawler
-feature/rag
+- `.env.example`을 복사해 `.env` 작성
+- `OPENAI_API_KEY`/DB 계정은 레포 비노출(Secret/운영 비밀관리 권장)
